@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+
+    <!-- open-iconic-bootstrap (icon set for bootstrap) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
+
+
+    <title>My ToDo List</title>
+  </head>
+  <body onload="initialize()">
+    <div class="container">
+      <blockquote class="blockquote text-center">
+        <p class="mt-5">Example</p>
+        <footer class="blockquote-footer mb-5">
+          Javascript to do list อย่างง่าย
+        </footer>
+      </blockquote>
+
+      <hr />
+      <h4>My To do list</h4>
+      <div class="row">
+          <div class="col">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+                <label class="form-check-label" for="inlineRadio1">Completed</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                <label class="form-check-label" for="inlineRadio2">Incompleted</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" checked>
+                <label class="form-check-label" for="inlineRadio3">All</label>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+                <label class="form-check-label" for="defaultCheck1">
+                  Order by "important" first
+                </label>
+              </div>
+          </div>
+      </div>
+      <br><br>
+      <ul id="mytodo" class="list-group">
+      </ul>
+      <!-- <hr> -->
+
+      <div class="input-group my-3">
+        <input
+          id="todo-item-text"
+          type="text"
+          class="form-control"
+          placeholder="เพิ่มรายการใหม่"
+          onkeypress="addTodoItemFromEnter(event)"
+        />
+        <div class="input-group-append">
+          <button
+            class="btn btn-outline-success"
+            type="button"
+            onclick="addTodoItem()"
+          >
+            <strong>+</strong>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // const axios = require('axios');
+        var items = []
+
+        function initialize () {
+            axios.get('/api/')
+            .then(function (response) {
+                // handle success
+                items = response.data
+
+                items.forEach((item) => {
+                    let text = item.text
+                    let priority = item.priority
+                    let complete_flag = item.complete_flag
+                    let display_order = item.display_order
+
+                    let li = createTodoItem(text, priority, complete_flag)
+                    let ul = document.querySelector('ul#mytodo')
+                    ul.appendChild(li)
+                })
+
+                console.log(response);
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            })
+            .then(function () {
+                // always executed
+            });
+        }
+
+        function deleteTodoItem(event) {
+            if (event.currentTarget !== event.target) return
+            let button = event.target.parentElement
+            let li = button.parentElement.parentElement.parentElement
+            li.remove()
+        }
+
+        function changeTodoItem(event) {
+        }
+
+        function createTodoItem(text, priority, complete_flag) {
+            let li = document.createElement('li')
+            li.className = 'list-group-item'
+
+            let row = document.createElement('div')
+            row.className = 'row'
+            li.append(row)
+            // First column
+            let col = document.createElement('div')
+            col.className = 'col-1'
+            let check = document.createElement('input')
+            check.type = 'checkbox'
+            check.className = 'form-check-input ml-2'
+            check.checked = complete_flag
+            col.append(check)
+            row.append(col)
+
+            // Second column
+            col = document.createElement('div')
+            col.className = 'col-3'
+            if (priority === '01'){
+                let badge = document.createElement('span')
+                badge.className = "badge badge-danger ml-2"
+                badge.innerText = "Important!"
+                col.prepend(badge)
+            }
+            if (complete_flag){
+                let badge = document.createElement('span')
+                badge.className = "badge badge-secondary ml-2"
+                badge.innerText = "Completed"
+                col.prepend(badge)
+            }
+            row.append(col)
+
+            // Third column
+            col = document.createElement('div')
+            col.className = 'col-6'
+            col.innerHTML = text
+            row.append(col)
+
+            // Fourth column
+            col = document.createElement('div')
+            col.className = 'col-2'
+            row.append(col)
+            
+            let button1 = document.createElement('button')
+            button1.type = 'button'
+            button1.className = 'btn btn-outline-warning'
+            
+            let button2 = document.createElement('button')
+            button2.type = 'button'
+            button2.className = 'btn btn-outline-danger'
+            
+            let span1 = document.createElement('span')
+            span1.className = 'oi oi-pencil'
+            let span2 = document.createElement('span')
+            span2.className = 'oi oi-delete'
+            
+            col.append(button1)
+            col.append(button2)
+            col.style.textAlign = 'right'
+            
+            button1.append(span1)
+            button2.append(span2)
+            
+            return li
+        }
+
+        function addTodoItem() {
+            let textInput = document.querySelector('input#todo-item-text')
+            let text = textInput.value
+            let priority = '02'
+            if (text.indexOf('***') >= 0){
+                priority = '01'
+                text = text.substring(3, text.length)
+            }
+
+            // Send AJAX resuest to create in the DB
+            axios.post('/api/', {
+                text: text,
+                priority: priority,
+                complete_flag: false
+            })
+            .then(function (response) {
+                let li = createTodoItem(text, priority, false)
+                let ul = document.querySelector('ul#mytodo')
+                ul.appendChild(li)
+
+                textInput.value = ''
+                textInput.focus()
+                console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+  });
+        }
+
+        function addTodoItemFromEnter(event) {
+            if (event.key === 'Enter') addTodoItem()
+        }
+    </script>
+  </body>
+</html>
